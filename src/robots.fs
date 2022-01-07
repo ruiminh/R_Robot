@@ -1,63 +1,47 @@
 module robots
 
-type Status = bool*bool*(string option)// VerticalWall* HorizontalWall* str
-
+type Status = bool*bool*(string option)//RightWall*BottomWall*str
 
 type BoardDisplay(rows:int,cols:int) =
-   let fields:Status [,] = Array2D.create rows cols (false,false,None)
+   let fields:Status [,] = Array2D.create (rows+1) (cols+1) (false,false,None)
+
    member this.Set (row:int) (col:int) (str:string) =
-       let (v,h,s) = fields.[row,col]
-       fields.[row,col]<- (v,h,Some str)  
+       let (a,b,c) = fields.[row,col]
+       fields.[row,col] <-(a,b,Some str)
    member this.SetBottomWall (row:int) (col:int) =
-       let (v,h,s) =fields.[row,col]
-       fields.[row,col] <- (v,true,s)
+       let (a,b,c) = fields.[row,col]
+       fields.[row,col] <- (a,true,c)
+       
    member this.SetRightWall (row:int) (col:int) =
-       let (v,h,s) =fields.[row,col]
-       fields.[row,col] <- (true,h,s)
+       let (a,b,c) = fields.[row,col]
+       fields.[row,col] <- (true,b,c)
+       
+   member private this.SetFrame() =
+       for j = 1 to cols do
+           this.SetBottomWall 0 j
+           this.SetBottomWall rows j
+       for i = 1 to rows do
+           this.SetRightWall i 0
+           this.SetRightWall i cols
    member this.Show() =
-      printfn "%s" this.ToString()
+       printfn "%s" (this.ToString())
 
    override this.ToString() =
-       let mutable str ="+"
-       for j = 1 to cols do //ceilling
-          str <- str + ( sprintf "%s" "--+")
-       str <- str + "\n"
-       for i = 1 to rows-1 do //main body except the bottom row
-           str <- str + (sprintf "%s" "|") //every row start with "|"
-           for j = 1 to cols-1 do //row's body except the last column.
-               let (v,h,s) = fields.[i,j]//easy to get out value in tripler
-               match fields.[i,j] with  //h wall doesn't matter
-                 |(true,_,None) -> str <- str + (sprintf "%s" "  |")
-                 |(true,_,Some) -> str <- str +  (sprintf "%s" "s.Value|")
-                 |(false,_,Some) -> str <- str +  (sprintf "%s" "s.Value")
-                 |_-> str <- str + (sprintf "%s" "   ")
-           let (v,h,s) = fields.[i,cols] //the last column in the row
-           match fields.[i,cols] with  //verticalwall doesn't matter either
-              |(_,_,Some) -> str <- str + (sprintf "%s" "s.Value|")
-              |_-> str <- str + (sprintf "%s" "  |")
-           str <- str + "\n"
-           str <- str + (sprintf "%s" "+") //rows bottom line start
-           for j = 1 to cols do  //v wall and str don't matter
-	       let (v,h,s) = fields.[i,j]
+       this.SetFrame() 
+       let mutable str =""
+       for i = 0 to rows do
+           for j=0 to cols do
+	       // here is the string line,don't think about bottom wall
 	       match fields.[i,j] with
-	         |(_,true,_) -> str <- str + (sprintf "%s" "__+")
-                 |_-> str <- str + (sprintf "%s" "  +")
-           str <- str + "\n"
-       str <- str + (sprintf "%s" "|") // start with the last row
-       for j = 1 to cols-1 do //row body,h wall doesn't matter
-           let (v,h,s) = fields.[rows,j]
-           match fields.[i,j] with
-                |(true,_,None) -> str <- str + (sprintf "%s" "  |")
-                |(true,_,Some) -> str <- str + (sprintf "%s" "s.Value|")
-                |_-> str <- str + (sprintf "%s" "   ")
-       let (v,h,s) = fields.[i,j] //row's last col, only s matter
-       match fields.[rows,j] with
-          |(_,_,Some) -> str <- str + (sprintf "%s" "s.Value|")
-          |_-> str <- str + (sprintf "%s" "  |")
-       str <- str + "\n"
-       str <- str + (sprintf "%s" "+") //bottom line, nothing matters
-       for j = 1 to cols do
-              str <-  str + (sprintf "%s" "--+")	               
+                  |(false,_,Some s) -> str <- str + ( sprintf "%s" (s+" "))
+                  |(true,_,None) -> str <- str + ( sprintf "%s" "  |")
+                  |(true,_,Some s) -> str <- str + ( sprintf "%s" (s+"|"))
+                  | _-> str <- str + (sprintf "%s" "   ")
+            str <- str + "\n"
+	       // here is the seperate line,only bottom wall matters
+               match fields.[i,j] with
+                  |(_,true,_) -> str <- str + ( sprintf "%s" "--+")
+                  |_-> str <- str + ( sprintf "%s" "  +")
+               str <- str + "\n"	               
        str
-  member this.Show() =
-      printfn "%s" this.ToString()
+  
