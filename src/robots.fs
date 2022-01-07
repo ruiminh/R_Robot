@@ -31,17 +31,18 @@ type BoardDisplay(rows:int,cols:int) =
        let mutable str =""
        for i = 0 to rows do
            for j=0 to cols do
-	       // here is the string line,don't think about bottom wall
-	       match fields.[i,j] with
+           // here is the string line,don't think about bottom wall
+              match fields.[i,j] with
                   |(false,_,Some s) -> str <- str + ( sprintf "%s" (s+" "))
                   |(true,_,None) -> str <- str + ( sprintf "%s" "  |")
                   |(true,_,Some s) -> str <- str + ( sprintf "%s" (s+"|"))
                   | _-> str <- str + (sprintf "%s" "   ")
-            str <- str + "\n"
-	       // here is the seperate line,only bottom wall matters
-               match fields.[i,j] with
-                  |(_,true,_) -> str <- str + ( sprintf "%s" "--+")
-                  |_-> str <- str + ( sprintf "%s" "  +")
-               str <- str + "\n"	               
+           str <- str + "\n"
+            // here is the seperate line,only bottom wall matters
+           for j=0 to cols do
+              match fields.[i,j] with
+                |(_,true,_) -> str <- str + ( sprintf "%s" "--+")
+                |_-> str <- str + ( sprintf "%s" "  +")
+           str <- str + "\n"               
        str
   
