@@ -182,8 +182,30 @@ type Game (board) =  //to do: write the class
      let bd = new BoardDisplay (rows,cols)
      List.iter (fun (x:BoardElement) -> x.RenderOn bd) board.Elements
      bd.Show()
-         
-     
+     //game start
+     while not (goal.GameOver board.Robots) do
+         printfn "%s" "Choose the robot you want move:"
+         let n = (System.Console.ReadLine())
+         let r = List.find (fun (x:Robot) -> x.Name = n) board.Robots
+         //if more time, change this to use system.readKay
+         printfn "%s" "Choose direction by input the letter  \n
+                    a-West d-East w-North x-South"
+         let input:string = System.Console.ReadLine()
+         let mutable dir = East
+	 match input with
+	    |"a" -> dir <- West
+	    |"d" -> ()
+	    |"w" -> dir <- North
+	    |"x" -> dir <- South
+         r.Step dir
+	 System.Console.Clear()
+	 let bd = new BoardDisplay (rows,cols)
+         List.iter (fun (x:BoardElement) -> x.RenderOn bd) board.Elements
+	 
+	 
+	 
+	      
+     printfn "%n" "Finally, you reach the goal!"
      
 
    // Mulighed for at loade forskellige startposition fra en fil.
