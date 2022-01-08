@@ -104,7 +104,7 @@ and Robot ( row : int , col : int , name : string ) =
 type Goal (r:int, c:int) =
   inherit BoardElement ()
   override this.RenderOn display =
-      display.Set r c   // need to debug here
+      display.Set r c "gg"
   override this.GameOver (robots:Robot list) =
       let mutable gameover = false
       for elm in robots do
@@ -118,38 +118,38 @@ type BoardFrame (r:int, c:int) =
   override this.RenderOn display =
 type VerticalWall(r:int,c:int,n:int) =
 type HorizontalWall((r:int,c:int,n:int))
+type Portal (r:int,c:int)
+
 
 //11g2
 type Board(rows:int,cols:int) =
-  let display = new BoardDisplay (rows,cols)
-  let robots:Robot list = []
-  let elements:BoradElements list = []
+  
+  let mutable robots:Robot list = []
+  let mutable elements:BoardElement list = []
   member this.Robots = robots
   member this.Elements = elements
   member this.AddRobot robot =
-    robot::robots
-    robot::elements
-    robot.RenderOn display
-  member this.AddElements element =
-    element::elements
-    element.RenderOn display
-  member Move robot dir =
+    robots <- robot::robots
+    elements <- (robot :> BoardElement)::elements
+    
+  member this.AddElement element =
+    elements <- element::elements
+    
+ (* member this.Move robot dir =
     let rec move robot dir lst =
-      robot.Step dir
+      robot.Step (dir:Direction):()
       match lst with  
-         |[] -> robot.Step dir
-	 |x::ys -> if (x.Interact robot dir = Stop pos) then ()
+         |[] -> robot.Step (dir:Direction)
+         |x::ys -> if (x.Interact robot dir = Stop pos) then ()
                    else move robot dir ys
-    move robat dir elements
+    move robat dir elements*) // to do: debug or maybe rewrite
     
 
-//11g3
 
-type Game (board) =
+
+type Game (board) =  //to do: write the class
    member this.play()=
-   //todo ask rows and cols
-     let rows = System.Console.Readline
-     let cols =
+   // getting lazy, just take arguments of rows and cols when run exe file
      let b = new Board()
      b.addRobot robot
      b.addElement element
