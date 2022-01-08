@@ -103,6 +103,8 @@ and Robot ( row : int , col : int , name : string ) =
 
 type Goal (r:int, c:int) =
   inherit BoardElement ()
+  let pos = (r,c)
+  member this.Position = pos
   override this.RenderOn display =
       display.Set r c "gg"
   override this.GameOver (robots:Robot list) =
@@ -148,11 +150,42 @@ type Board(rows:int,cols:int) =
 
 
 type Game (board) =  //to do: write the class
-   member this.play()=
-   // getting lazy, just take arguments of rows and cols when run exe file
-     let b = new Board()
-     b.addRobot robot
-     b.addElement element
+   member this.Play()=
+     printfn "%s" "Please enter rows and columns of the board (5-15)"
+     printf "Rows:"
+     let rows = int (System.Console.ReadLine())
+     printf "Columns:"
+     let cols = int (System.Console.ReadLine())
+     let board = new Board(rows,cols)
+     let random = new System.Random()
+     //let goal = new Goal(random.Next(1,rows),random.Next(1,cols))
+     //if goal go random, then robots need compare start place with it
+     let goal = new Goal((rows-2),(cols-2))
+     board.AddElement goal
+     
+     let r1 = new Robot (1,random.Next(1,cols),"AA")
+     let r2 = new Robot (2,random.Next(1,cols),"BB")
+     let r3 = new Robot (rows,random.Next(1,cols),"CC")
+     board.AddRobot r1
+     board.AddRobot r2
+     board.AddRobot r3
+     
+     //let bf = new BoardFrame (rows,cols)
+     //board.AddElement bf  
+     //let w1 = new HorizontalWall(2,3,0)
+     //let w2 = new HorizontalWall(2,4,1)
+     //let w3 = new VerticalWall (2,3,0)
+     //board.AddElement w1
+     //board.AddElement w2
+     //board.AddElement w3
+     
+     let bd = new BoardDisplay (rows,cols)
+     List.iter (fun (x:BoardElement) -> x.RenderOn bd) board.Elements
+     bd.Show()
+         
+     
+     
+
    // Mulighed for at loade forskellige startposition fra en fil.
      //ask player input which robot he want move
      //move robot, when stop,check if game over,if not
