@@ -2,6 +2,7 @@ module robots
 
 type Status = bool*bool*(string option)//RightWall*BottomWall*str
 
+
 type BoardDisplay(rows:int,cols:int) =
    let fields:Status [,] = Array2D.create (rows+1) (cols+1) (false,false,None)
 
@@ -45,4 +46,121 @@ type BoardDisplay(rows:int,cols:int) =
                 |_-> str <- str + ( sprintf "%s" "  +")
            str <- str + "\n"               
        str
+
+
+//11g1
+
+type Position = int * int
+
+type Direction = North | South | East | West
+type Action =
+   |Stop of Position
+   |Continue of Direction * Position
+   |Ignore
+
+[< AbstractClass >]
+type BoardElement () =
+  abstract member RenderOn : BoardDisplay -> unit
+  abstract member Interact : Robot -> Direction -> Action
+  default __.Interact _ _ = Ignore
+  abstract member GameOver : Robot list -> bool
+  default __.GameOver _ = false
+and Robot ( row : int , col : int , name : string ) =
+  inherit BoardElement ()
+  let mutable position = (row,col)
+  member this.Position = position
+  override this.Interact other dir =
+     let (r0,c0) = position
+     let (r1,c1) = other.Position
+     match (r1,c1) with
+       |(r0,n) when n = c0-1-> match dir with
+                                  |East -> Stop other.Position
+                                  |_-> Ignore
+       |(r0,n) when n = c0+1 -> match dir with
+                                  |West -> Stop other.Position
+                                  |_ -> Ignore
+       |(n,c0) when n = r0-1-> match dir with
+                                  |South -> Stop other.Position
+                                  |_-> Ignore
+       |(n,c0) when n = r0+1 -> match dir with
+                                  |North -> Stop other.Position
+                                  |_-> Ignore
+       |_-> Ignore
+  override this.RenderOn display =
+       display.Set (fst position) (snd position) name
+       
+  member val Name = name
+  member robot.Step dir =
+       match dir with
+             |North-> position <- ((fst position)-1,snd position)
+             |South-> position <- ((fst position)+1,snd position)
+             |East -> position <- (fst position,(snd position)+1)
+             |West -> position <- (fst position,(snd position)-1)
+
+//todo below 4 class need to be finished. the important parts is the
+//override Interact method.
+
+
+type Goal (r:int, c:int) =
+  inherit BoardElement ()
+  override this.RenderOn display =
+      display.Set r c   // need to debug here
+  override this.GameOver (robots:Robot list) =
+      let mutable gameover = false
+      for elm in robots do
+          if (fst elm.Position) = r && (snd elm.Position) = c then
+             gameover <- true
+          else ()
+      gameover
+
+type BoardFrame (r:int, c:int) =
+  override this.Interact robot dir =
+  override this.RenderOn display =
+type VerticalWall(r:int,c:int,n:int) =
+type HorizontalWall((r:int,c:int,n:int))
+
+//11g2
+type Board(rows:int,cols:int) =
+  let display = new BoardDisplay (rows,cols)
+  let robots:Robot list = []
+  let elements:BoradElements list = []
+  member this.Robots = robots
+  member this.Elements = elements
+  member this.AddRobot robot =
+    robot::robots
+    robot::elements
+    robot.RenderOn display
+  member this.AddElements element =
+    element::elements
+    element.RenderOn display
+  member Move robot dir =
+    let rec move robot dir lst =
+      robot.Step dir
+      match lst with  
+         |[] -> robot.Step dir
+	 |x::ys -> if (x.Interact robot dir = Stop pos) then ()
+                   else move robot dir ys
+    move robat dir elements
+    
+
+//11g3
+
+type Game (board) =
+   member this.play()=
+   //todo ask rows and cols
+     let rows = System.Console.Readline
+     let cols =
+     let b = new Board()
+     b.addRobot robot
+     b.addElement element
+   // Mulighed for at loade forskellige startposition fra en fil.
+     //ask player input which robot he want move
+     //move robot, when stop,check if game over,if not
+     start an other move ????? how to do it?
+        
+
+     
   
+  
+       
+			          
