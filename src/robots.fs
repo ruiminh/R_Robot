@@ -68,11 +68,20 @@ type BoardElement () =
 and Robot ( row : int , col : int , name : string ) =
   inherit BoardElement ()
   let mutable position = (row,col)
-  member this.Position = position
+  member this.Position
+          with get () = position
+          and set (a) = position <- a
   override this.Interact other dir =
    if this = other then Ignore
+   elif position = other.Position then
+          match dir with
+            |East -> Stop (fst position,(snd position)-1)
+            |West -> Stop (fst position,(snd position)+1)
+            |North -> Stop ((fst position)+1,snd position)
+            |South -> Stop ((fst position)-1,snd position)
    else
-     let (r0,c0) = position
+         Ignore
+     (*let (r0,c0) = position
      let (r1,c1) = other.Position
      match (r1,c1) with
        |(r0,n) when n = c0-1-> match dir with
@@ -87,7 +96,7 @@ and Robot ( row : int , col : int , name : string ) =
        |(n,c0) when n = r0+1 -> match dir with
                                   |North -> Stop other.Position
                                   |_-> Ignore
-       |_-> Ignore
+       |_-> Ignore *)
   override this.RenderOn display =
        display.Set (fst position) (snd position) name
        
@@ -117,10 +126,29 @@ type Goal (r:int, c:int) =
           else ()
       gameover
 //to do: 4 class
-(*type BoardFrame (r:int, c:int) =
-  override this.Interact robot dir =
-  override this.RenderOn display =
-type VerticalWall(r:int,c:int,n:int) =
+type BoardFrame (r:int, c:int) =
+  inherit BoardElement ()
+  override this.RenderOn board =
+     ()
+  override this.Interact robot dir:Action =     
+     if (fst robot.Position) = 0 && dir = North then
+          Stop (1,snd robot.Position) 
+     elif (fst robot.Position) = r && dir = South then 
+          Stop (r,snd robot.Position) 
+     elif (snd robot.Position) = 0 && dir = West then 
+          Stop (fst robot.Position,1) 
+     elif (fst robot.Position) = c && dir = East then 
+          Stop (fst robot.Position,c) 
+     else Ignore
+     (*match ((robot.Position),dir) with
+         | ((1,_),North) -> Stop (1,snd robot.Position)
+         | ((r,_),South) -> Stop (r,snd robot.Position)
+         |((_,1),West) -> Stop (fst robot.Position,1)
+         |((_,c),East) -> Stop (fst robot.Position,c)
+         |_ -> Ignore 
+        *)
+  
+(*type VerticalWall(r:int,c:int,n:int) =
 type HorizontalWall((r:int,c:int,n:int))
 type Portal (r:int,c:int) *)
 
@@ -148,7 +176,7 @@ type Board(rows:int,cols:int) =
        else
            let e = List.find (fun (x:BoardElement)-> x.Interact r d <> Ignore) lst
            match (e.Interact r d) with
-                   |Stop pos -> ()
+                   |Stop pos -> r.Position <- pos
                    |Continue (dirt,pos) -> ()
       
     move robot dir elements
@@ -177,8 +205,8 @@ type Game (board) =  //to do: write the class
      board.AddRobot r2
      board.AddRobot r3
      
-     //let bf = new BoardFrame (rows,cols)
-     //board.AddElement bf  
+     let bf = new BoardFrame (rows,cols)
+     board.AddElement bf  
      //let w1 = new HorizontalWall(2,3,0)
      //let w2 = new HorizontalWall(2,4,1)
      //let w3 = new VerticalWall (2,3,0)
@@ -204,8 +232,8 @@ type Game (board) =  //to do: write the class
             |"a" -> dir <- West
             |"w" -> dir <- North
             |"x" -> dir <- South
-            |_-> ()
-         
+            |"d" -> dir <- East
+            |_-> printfn "%s" "System is too lazy to handle exception here"         
          board.Move r dir
          System.Console.Clear()
          let bd = new BoardDisplay (rows,cols)
