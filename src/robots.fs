@@ -155,7 +155,7 @@ type Board(rows:int,cols:int) =
     
 
 
-(*
+
 type Game (board) =  //to do: write the class
    member this.Play()=
      printfn "%s" "Please enter rows and columns of the board (5-15)"
@@ -188,8 +188,9 @@ type Game (board) =  //to do: write the class
      
      let bd = new BoardDisplay (rows,cols)
      List.iter (fun (x:BoardElement) -> x.RenderOn bd) board.Elements
-     bd.Show()
-     //game start
+     bd.Show()  // this is show the game setup
+     
+     //game use a while loop
      while not (goal.GameOver board.Robots) do
          printfn "%s" "Choose the robot you want move:"
          let n = (System.Console.ReadLine())
@@ -199,30 +200,15 @@ type Game (board) =  //to do: write the class
                     a-West d-East w-North x-South"
          let input:string = System.Console.ReadLine()
          let mutable dir = East
-         match input with
+         match input with  
             |"a" -> dir <- West
-            |"d" -> ()
             |"w" -> dir <- North
             |"x" -> dir <- South
-	 // should be in board.Move
+            |_-> ()
+         
          board.Move r dir
-
-
-
-
-
+         System.Console.Clear()
          let bd = new BoardDisplay (rows,cols)
          List.iter (fun (x:BoardElement) -> x.RenderOn bd) board.Elements
-  
-  
-  
-        
+         bd.Show()        
      printfn "%s" "Finally, you reach the goal!"
-     
-
-   // Mulighed for at loade forskellige startposition fra en fil.
-     //ask player input which robot he want move
-     //move robot, when stop,check if game over,if not
-    // start an other move ????? how to do it?
-      			          
-*)
