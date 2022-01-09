@@ -70,6 +70,8 @@ and Robot ( row : int , col : int , name : string ) =
   let mutable position = (row,col)
   member this.Position = position
   override this.Interact other dir =
+   if this = other then Ignore
+   else
      let (r0,c0) = position
      let (r1,c1) = other.Position
      match (r1,c1) with
@@ -114,13 +116,13 @@ type Goal (r:int, c:int) =
              gameover <- true
           else ()
       gameover
-
-type BoardFrame (r:int, c:int) =
+//to do: 4 class
+(*type BoardFrame (r:int, c:int) =
   override this.Interact robot dir =
   override this.RenderOn display =
 type VerticalWall(r:int,c:int,n:int) =
 type HorizontalWall((r:int,c:int,n:int))
-type Portal (r:int,c:int)
+type Portal (r:int,c:int) *)
 
 
 //11g2
@@ -136,19 +138,24 @@ type Board(rows:int,cols:int) =
     
   member this.AddElement element =
     elements <- element::elements
+  
+  member this.Move (robot:Robot) (dir:Direction) =
+    robot.Step dir
+    let rec move (r:Robot) (d:Direction) lst =
+       if List.forall (fun (x:BoardElement) ->x.Interact r d = Ignore) lst then
+            r.Step d
+            move r d lst
+       else
+           let e = List.find (fun (x:BoardElement)-> x.Interact r d <> Ignore) lst
+           match (e.Interact r d) with
+                   |Stop pos -> ()
+                   |Continue (dirt,pos) -> ()
+      
+    move robot dir elements
     
- (* member this.Move robot dir =
-    let rec move robot dir lst =
-      robot.Step (dir:Direction):()
-      match lst with  
-         |[] -> robot.Step (dir:Direction)
-         |x::ys -> if (x.Interact robot dir = Stop pos) then ()
-                   else move robot dir ys
-    move robat dir elements*) // to do: debug or maybe rewrite
-    
 
 
-
+(*
 type Game (board) =  //to do: write the class
    member this.Play()=
      printfn "%s" "Please enter rows and columns of the board (5-15)"
@@ -192,30 +199,30 @@ type Game (board) =  //to do: write the class
                     a-West d-East w-North x-South"
          let input:string = System.Console.ReadLine()
          let mutable dir = East
-	 match input with
-	    |"a" -> dir <- West
-	    |"d" -> ()
-	    |"w" -> dir <- North
-	    |"x" -> dir <- South
-         r.Step dir
-	 System.Console.Clear()
-	 let bd = new BoardDisplay (rows,cols)
+         match input with
+            |"a" -> dir <- West
+            |"d" -> ()
+            |"w" -> dir <- North
+            |"x" -> dir <- South
+	 // should be in board.Move
+         board.Move r dir
+
+
+
+
+
+         let bd = new BoardDisplay (rows,cols)
          List.iter (fun (x:BoardElement) -> x.RenderOn bd) board.Elements
-	 
-	 
-	 
-	      
-     printfn "%n" "Finally, you reach the goal!"
+  
+  
+  
+        
+     printfn "%s" "Finally, you reach the goal!"
      
 
    // Mulighed for at loade forskellige startposition fra en fil.
      //ask player input which robot he want move
      //move robot, when stop,check if game over,if not
-     start an other move ????? how to do it?
-        
-
-     
-  
-  
-       
-			          
+    // start an other move ????? how to do it?
+      			          
+*)
