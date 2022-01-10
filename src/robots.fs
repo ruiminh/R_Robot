@@ -1,12 +1,6 @@
-(*to do: debug
-1: East Wall can't hold robt
-2:frame and robot interact the same time.(south frame)
-3.exceptions
-4:when robot already at the frame try to braek the frame
-5: test the goal
-*)
 
-//to do: change the way to choose direction, use readkey
+//to do:documentation
+//to do:quit game in the middle
 
 
 module robots
@@ -139,7 +133,7 @@ type Goal (r:int, c:int) =
 //to do: 4 class
 type BoardFrame (r:int, c:int) =
   inherit BoardElement ()
-  override this.RenderOn board =
+  override this.RenderOn display =
      ()
   override this.Interact robot dir:Action =     
      if (fst robot.Position) = 0 && dir = North then
@@ -148,21 +142,54 @@ type BoardFrame (r:int, c:int) =
           Stop (r,snd robot.Position) 
      elif (snd robot.Position) = 0 && dir = West then 
           Stop (fst robot.Position,1) 
-     elif (fst robot.Position) = c && dir = East then 
+     elif (snd robot.Position) = c && dir = East then 
           Stop (fst robot.Position,c) 
      else Ignore
-     (*match ((robot.Position),dir) with
+
+    (*match ((robot.Position),dir) with
          | ((1,_),North) -> Stop (1,snd robot.Position)
          | ((r,_),South) -> Stop (r,snd robot.Position)
          |((_,1),West) -> Stop (fst robot.Position,1)
          |((_,c),East) -> Stop (fst robot.Position,c)
-         |_ -> Ignore 
+         |_ -> Ignore
+	 //doesn't work well, robots will only move one step-
         *)
   
-(*type VerticalWall(r:int,c:int,n:int) =
-type HorizontalWall((r:int,c:int,n:int))
-type Portal (r:int,c:int) *)
-
+type VerticalWall(r:int,c:int,n:int) =
+  inherit BoardElement ()
+  override this.RenderOn display =
+    if n > 0 then 
+      for i = 1 to n do
+           display.SetRightWall (r+i-1) c
+    else
+      for i = 1 to (-n) do
+       display.SetRightWall (r-i+1) c
+  override this.Interact robot dir:Action =       
+    if (snd robot.Position = c) && (fst robot.Position > (r-1)) && (fst robot.Position < (r+n)) then
+          match dir with
+            |East -> Stop (fst robot.Position,c)
+            |West -> Stop (fst robot.Position,(c+1))
+            |_ -> Ignore
+    else
+         Ignore      
+type HorizontalWall(r:int,c:int,n:int)=
+  inherit BoardElement ()
+  override this.RenderOn display =
+    if n > 0 then 
+         for i = 1 to n do
+             display.SetBottomWall r (c+i-1)
+    else
+         for i = 1 to (-n) do
+             display.SetBottomWall r (c-i+1)
+  override this.Interact robot dir:Action =
+    if (fst robot.Position = r) && (snd robot.Position > (c-1)) && (snd robot.Position < (c+n)) then
+          match dir with
+            |South -> Stop (r,snd robot.Position)
+            |North -> Stop ((r+1),snd robot.Position)
+            |_ -> Ignore
+    else
+         Ignore
+//type Portal (r:int,c:int) 
 
 //11g2
 type Board(rows:int,cols:int) =
@@ -179,7 +206,7 @@ type Board(rows:int,cols:int) =
     elements <- element::elements
   
   member this.Move (robot:Robot) (dir:Direction) =
-    robot.Step dir
+    //robot.Step dir
     let rec move (r:Robot) (d:Direction) lst =
        if List.forall (fun (x:BoardElement) ->x.Interact r d = Ignore) lst then
             r.Step d
@@ -197,6 +224,7 @@ type Board(rows:int,cols:int) =
 
 type Game (board) =  //to do: write the class
    member this.Play()=
+     System . Console . BackgroundColor <- System . ConsoleColor . Blue
      printfn "%s" "Please enter rows and columns of the board (5-15)"
      printf "Rows:"
      let rows = int (System.Console.ReadLine())
@@ -219,36 +247,37 @@ type Game (board) =  //to do: write the class
      board.AddRobot r2
      board.AddRobot r3
       
-     //let w1 = new HorizontalWall(2,3,0)
-     //let w2 = new HorizontalWall(2,4,1)
-     //let w3 = new VerticalWall (2,3,0)
-     //board.AddElement w1
-     //board.AddElement w2
-     //board.AddElement w3
+     let w1 = new HorizontalWall(2,3,1)
+     let w2 = new HorizontalWall(1,4,2)
+     let w3 = new VerticalWall (2,3,1)
+     board.AddElement w1
+     board.AddElement w2
+     board.AddElement w3
      board.AddElement goal
      let bd = new BoardDisplay (rows,cols)
      List.iter (fun (x:BoardElement) -> x.RenderOn bd) board.Elements
      bd.Show()  // this is show the game setup
+     let mutable counter = 0
      
      //game use a while loop
      while not (goal.GameOver board.Robots) do
          printfn "%s" "Choose the robot you want move:"
          let n = (System.Console.ReadLine())
          let r = List.find (fun (x:Robot) -> x.Name = n) board.Robots
-         //if more time, change this to use system.readKay
-         printfn "%s" "Choose direction by input the letter  \n
-                    a-West d-East w-North x-South"
-         let input:string = System.Console.ReadLine()
+         //here can handle exception
+         printfn "%s" "Press Arrow keys to move the robot:"
+         let k = System.Console.ReadKey(true)
          let mutable dir = East
-         match input with  
-            |"a" -> dir <- West
-            |"w" -> dir <- North
-            |"x" -> dir <- South
-            |"d" -> dir <- East
-            |_-> printfn "%s" "System is too lazy to handle exception here"         
+         match k.Key with  
+            |System.ConsoleKey.UpArrow -> dir <- North
+            |System.ConsoleKey.DownArrow -> dir <- South
+            |System.ConsoleKey.LeftArrow -> dir <- West
+            |System.ConsoleKey.RightArrow -> dir <- East
+            |_-> printfn "%A" k.Key         
          board.Move r dir
+         counter <- counter + 1
          System.Console.Clear()
          let bd = new BoardDisplay (rows,cols)
          List.iter (fun (x:BoardElement) -> x.RenderOn bd) board.Elements
          bd.Show()        
-     printfn "%s" "Finally, you reach the goal!"
+     printfn "You reach the goal! It takes you %d steps" counter
