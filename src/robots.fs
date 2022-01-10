@@ -60,7 +60,7 @@ type Position = int * int
 type Direction = North | South | East | West
 type Action =
    |Stop of Position
-   |Continue of Direction * Position
+   |Continue of Direction*Position
    |Ignore
 
 [< AbstractClass >]
@@ -113,10 +113,6 @@ and Robot ( row : int , col : int , name : string ) =
              |East -> position <- (fst position,(snd position)+1)
              |West -> position <- (fst position,(snd position)-1)
 
-//todo below 4 class need to be finished. the important parts is the
-//override Interact method.
-
-
 type Goal (r:int, c:int) =
   inherit BoardElement ()
   let pos = (r,c)
@@ -130,7 +126,7 @@ type Goal (r:int, c:int) =
              gameover <- true
           else ()
       gameover
-//to do: 4 class
+
 type BoardFrame (r:int, c:int) =
   inherit BoardElement ()
   override this.RenderOn display =
@@ -189,7 +185,15 @@ type HorizontalWall(r:int,c:int,n:int)=
             |_ -> Ignore
     else
          Ignore
-//type Portal (r:int,c:int) 
+type Portal (r:int,c:int) =
+  inherit BoardElement ()
+  member this.Position = (r,c)
+  override this.RenderOn display =
+     display.Set r c "☯"
+  override this.Interact robot dir:Action =     
+     if this.Position = robot.Position then
+          Continue (North,(1,1)) 
+     else Ignore
 
 //11g2
 type Board(rows:int,cols:int) =
@@ -215,8 +219,8 @@ type Board(rows:int,cols:int) =
            let e = List.find (fun (x:BoardElement)-> x.Interact r d <> Ignore) lst
            match (e.Interact r d) with
                    |Stop pos -> r.Position <- pos
-                   |Continue (dirt,pos) -> ()
-      
+                   |Continue (dirt,pos) -> r.Position <-pos
+                                          
     move robot dir elements
     
 
@@ -246,7 +250,8 @@ type Game (board) =  //to do: write the class
      board.AddRobot r1
      board.AddRobot r2
      board.AddRobot r3
-      
+     let p = new Portal(3,2)
+     board.AddElement p
      let w1 = new HorizontalWall(2,3,1)
      let w2 = new HorizontalWall(1,4,2)
      let w3 = new VerticalWall (2,3,1)
@@ -281,3 +286,5 @@ type Game (board) =  //to do: write the class
          List.iter (fun (x:BoardElement) -> x.RenderOn bd) board.Elements
          bd.Show()        
      printfn "You reach the goal! It takes you %d steps" counter
+
+
