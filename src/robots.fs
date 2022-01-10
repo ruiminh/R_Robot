@@ -1,3 +1,14 @@
+(*to do: debug
+1: East Wall can't hold robt
+2:frame and robot interact the same time.(south frame)
+3.exceptions
+4:when robot already at the frame try to braek the frame
+5: test the goal
+*)
+
+//to do: change the way to choose direction, use readkey
+
+
 module robots
 
 type Status = bool*bool*(string option)//RightWall*BottomWall*str
@@ -197,6 +208,9 @@ type Game (board) =  //to do: write the class
      //if goal go random, then robots need compare start place with it
      let goal = new Goal((rows-2),(cols-2))
      board.AddElement goal
+     let bf = new BoardFrame (rows,cols)
+     board.AddElement bf  //frame need to be the last in the list
+
      
      let r1 = new Robot (1,random.Next(1,cols),"AA")
      let r2 = new Robot (2,random.Next(1,cols),"BB")
@@ -204,16 +218,14 @@ type Game (board) =  //to do: write the class
      board.AddRobot r1
      board.AddRobot r2
      board.AddRobot r3
-     
-     let bf = new BoardFrame (rows,cols)
-     board.AddElement bf  
+      
      //let w1 = new HorizontalWall(2,3,0)
      //let w2 = new HorizontalWall(2,4,1)
      //let w3 = new VerticalWall (2,3,0)
      //board.AddElement w1
      //board.AddElement w2
      //board.AddElement w3
-     
+     board.AddElement goal
      let bd = new BoardDisplay (rows,cols)
      List.iter (fun (x:BoardElement) -> x.RenderOn bd) board.Elements
      bd.Show()  // this is show the game setup
