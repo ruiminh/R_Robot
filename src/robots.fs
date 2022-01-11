@@ -7,7 +7,9 @@ module robots
 
 type Status = bool*bool*(string option)//RightWall*BottomWall*str
 
-
+///<summary>Displays the board</summary>
+/// <param name="rows">Number of rows of the printed board. Int</param>
+/// <param name="cols">Number of colons of the printed board. Int</param>
 type BoardDisplay(rows:int,cols:int) =
    let fields:Status [,] = Array2D.create (rows+1) (cols+1) (false,false,None)
 
@@ -63,6 +65,7 @@ type Action =
    |Continue of Direction*Position
    |Ignore
 
+///<summary>Abstract class used for elements on the board</summary>
 [< AbstractClass >]
 type BoardElement () =
   abstract member RenderOn : BoardDisplay -> unit
@@ -70,12 +73,14 @@ type BoardElement () =
   default __.Interact _ _ = Ignore
   abstract member GameOver : Robot list -> bool
   default __.GameOver _ = false
+///<summary>Class for robot elements</summary>
 and Robot ( row : int , col : int , name : string ) =
   inherit BoardElement ()
   let mutable position = (row,col)
   member this.Position
           with get () = position
           and set (a) = position <- a
+  /// Controlls colliding with walls
   override this.Interact other dir =
    if this = other then Ignore
    elif position = other.Position then
@@ -86,25 +91,11 @@ and Robot ( row : int , col : int , name : string ) =
             |South -> Stop ((fst position)-1,snd position)
    else
          Ignore
-     (*let (r0,c0) = position
-     let (r1,c1) = other.Position
-     match (r1,c1) with
-       |(r0,n) when n = c0-1-> match dir with
-                                  |East -> Stop other.Position
-                                  |_-> Ignore
-       |(r0,n) when n = c0+1 -> match dir with
-                                  |West -> Stop other.Position
-                                  |_ -> Ignore
-       |(n,c0) when n = r0-1-> match dir with
-                                  |South -> Stop other.Position
-                                  |_-> Ignore
-       |(n,c0) when n = r0+1 -> match dir with
-                                  |North -> Stop other.Position
-                                  |_-> Ignore
-       |_-> Ignore *)
+
+
   override this.RenderOn display =
        display.Set (fst position) (snd position) name
-       
+    
   member val Name = name
   member robot.Step dir =
        match dir with
@@ -112,7 +103,9 @@ and Robot ( row : int , col : int , name : string ) =
              |South-> position <- ((fst position)+1,snd position)
              |East -> position <- (fst position,(snd position)+1)
              |West -> position <- (fst position,(snd position)-1)
-
+///<summary>The goal class, checks if a robot has ended their turn on top, and ends the game in a win</summary>
+/// <param name="r">Number of rows of the printed board. Int</param>
+/// <param name="c">Number of colons of the printed board. Int</param>
 type Goal (r:int, c:int) =
   inherit BoardElement ()
   let pos = (r,c)
@@ -127,6 +120,9 @@ type Goal (r:int, c:int) =
           else ()
       gameover
 
+///<summary>The BoardFrame class, manages the outer board walls and stops the robots if they collide with them</summary>
+/// <param name="r">Number of rows of the printed board. Int</param>
+/// <param name="c">Number of colons of the printed board. Int</param>
 type BoardFrame (r:int, c:int) =
   inherit BoardElement ()
   override this.RenderOn display =
@@ -142,15 +138,10 @@ type BoardFrame (r:int, c:int) =
           Stop (fst robot.Position,c) 
      else Ignore
 
-    (*match ((robot.Position),dir) with
-         | ((1,_),North) -> Stop (1,snd robot.Position)
-         | ((r,_),South) -> Stop (r,snd robot.Position)
-         |((_,1),West) -> Stop (fst robot.Position,1)
-         |((_,c),East) -> Stop (fst robot.Position,c)
-         |_ -> Ignore
-	 //doesn't work well, robots will only move one step-
-        *)
-  
+///<summary>VerticalWall element class, manages display and collision with vertical walls</summary>
+/// <param name="r">Number of rows of the printed board. Int</param>
+/// <param name="c">Number of colons of the printed board. Int</param>
+/// <param name="n">Length of the wall. Int</param>
 type VerticalWall(r:int,c:int,n:int) =
   inherit BoardElement ()
   override this.RenderOn display =
@@ -168,6 +159,10 @@ type VerticalWall(r:int,c:int,n:int) =
             |_ -> Ignore
     else
          Ignore      
+///<summary>HorizontallWall element class, manages display and collision with Horizontal walls</summary>
+/// <param name="r">Number of rows of the printed board. Int</param>
+/// <param name="c">Number of colons of the printed board. Int</param>
+/// <param name="n">Length of the wall. Int</param>
 type HorizontalWall(r:int,c:int,n:int)=
   inherit BoardElement ()
   override this.RenderOn display =
@@ -185,17 +180,24 @@ type HorizontalWall(r:int,c:int,n:int)=
             |_ -> Ignore
     else
          Ignore
+
+///<summary>Portal element class, manages display and teleportation with portals</summary>
+/// <param name="r">Number of rows of the printed board. Int</param>
+/// <param name="c">Number of colons of the printed board. Int</param>
 type Portal (r:int,c:int) =
   inherit BoardElement ()
   member this.Position = (r,c)
   override this.RenderOn display =
-     display.Set r c "☯"
+     display.Set r c "☯ "
   override this.Interact robot dir:Action =     
      if this.Position = robot.Position then
-          Continue (North,(1,1)) 
+          Continue (North,(0,1)) 
      else Ignore
 
 //11g2
+///<summary>Board class, manages display of given elements and the movement of the robots</summary>
+/// <param name="rrows">Number of rows of the printed board. Int</param>
+/// <param name="cols">Number of colons of the printed board. Int</param>
 type Board(rows:int,cols:int) =
   
   let mutable robots:Robot list = []
@@ -225,7 +227,7 @@ type Board(rows:int,cols:int) =
     
 
 
-
+///<summary>Game class, initializes the game, controlls the game and user input </summary>
 type Game (board) =  //to do: write the class
    member this.Play()=
      System . Console . BackgroundColor <- System . ConsoleColor . Blue
